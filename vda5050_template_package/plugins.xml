@@ -1,0 +1,11 @@
+<library path="handler_plugins">
+  <class type="adapter::TemplateNavToNode" base_class_type="adapter::NavToNode">
+    <description>NavToNode: Template</description>
+  </class>
+  <class type="adapter::TemplateVDAAction" base_class_type="adapter::VDAAction">
+    <description>VDA Action: Template</description>
+  </class>
+  <class type="adapter::TemplateStateHandler" base_class_type="adapter::StateHandler">
+    <description>State Handler: Template</description>
+  </class>
+</library>

@@ -1,0 +1,20 @@
+mqtt_bridge:
+  ros__parameters:
+    mqtt_address: "localhost"
+    mqtt_port: 1883
+    mqtt_username: ""
+    mqtt_password: ""
+    manufacturer_name: "OSRF"
+    serial_number: "TB3_1"
+
+controller:
+  ros__parameters:
+    robot_name: "TB3_1"
+    manufacturer_name: "OSRF"
+    serial_number: "TB3_1"
+
+tb3_adapter:
+  ros__parameters:
+    robot_name: "TB3_1"
+    manufacturer_name: "OSRF"
+    serial_number: "TB3_1"

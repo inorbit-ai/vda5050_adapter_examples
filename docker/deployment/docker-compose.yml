@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  simulation:
+    depends_on:
+      - development
+    build:
+      context: ../build
+      dockerfile: ../build/simulation.Dockerfile
+    user: docker
+    environment:
+      - DISPLAY
+      - QT_X11_NO_MITSHM=1
+      - XAUTHORITY=/tmp/.docker.xauth
+      - ROS_DOMAIN_ID=100
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /tmp/.docker.xauth:/tmp/.docker.xauth
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    command: /bin/bash -c \
+              "export TURTLEBOT3_MODEL=waffle \
+              && ros2 launch nav2_bringup tb3_simulation_launch.py headless:=False"
+
+  development:
+    build:
+      context: ../build
+      dockerfile: ../build/development.Dockerfile
+      ssh: ["default"]
+    user: docker
+    environment:
+      - DISPLAY
+      - ROS_DOMAIN_ID=100
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /sys/fs/cgroup
+      - /run
+      - ../../vda5050_template_package:/home/docker/dev_ws/src/vda5050_template_package
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    command: sleep infinity
+
+  mosquitto:
+    image: eclipse-mosquitto
+    command: mosquitto -c /mosquitto-no-auth.conf

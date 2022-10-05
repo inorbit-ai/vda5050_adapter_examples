@@ -1,0 +1,42 @@
+mqtt_bridge:
+  ros__parameters:
+    mqtt_address: "localhost"
+    mqtt_port: 1883
+    mqtt_username: ""
+    mqtt_password: ""
+    manufacturer_name: "robots"
+    serial_number: "robot_1"
+
+controller:
+  ros__parameters:
+    robot_name: "robot_1"
+    manufacturer_name: "robots"
+    serial_number: "robot_1"
+
+adapter_node:
+  ros__parameters:
+    robot_name: "robot_1"
+    manufacturer_name: "robots"
+    serial_number: "robot_1"
+
+    state_handler_names: ["adapter::TemplateStateHandler"]
+
+    nav_to_node:
+      handler: "adapter::TemplateNavToNode"
+
+    vda_action_handlers: ["templateAction"]
+    template_action:
+      handler: "adapter::TemplateVDAAction"
+      description: "VDA Action: Template"
+      scopes:
+        instant: true
+        node: true
+      parameters: ["example_1", "example_2"]
+      parameter_example_1:
+        data_type: "STRING"
+        description: "Example of parameter 1"
+        is_optional: false
+      parameter_example_2:
+        data_type: "INTEGER"
+        description: "Example of parameter 2"
+        is_optional: true
