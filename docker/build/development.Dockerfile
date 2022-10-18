@@ -77,7 +77,7 @@ RUN /bin/bash -c \
 RUN mkdir -p /home/docker/.ssh && ssh-keyscan -H github.com > /home/docker/.ssh/known_hosts
 RUN --mount=type=ssh,mode=0666 /bin/bash -c \
    'source /opt/ros/galactic/setup.bash \
-   && git clone --branch galactic-devel git@github.com:inorbit-ai/ros_amr_interop.git \
+   && git clone --branch galactic-devel https://github.com/inorbit-ai/ros_amr_interop.git \
    && mv ros_amr_interop/vda5050_connector ./src/vda5050_connector \
    && /bin/bash -c "source /opt/ros/galactic/setup.bash && colcon build"'
 

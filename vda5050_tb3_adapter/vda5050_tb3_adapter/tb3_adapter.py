@@ -48,6 +48,7 @@ from vda5050_connector.action import NavigateToNode
 from vda5050_connector.action import ProcessVDAAction
 from nav2_msgs.action import NavigateToPose
 from vda5050_connector.srv import GetState
+from vda5050_connector.srv import SupportedActions
 from nav_msgs.msg import Odometry
 
 from tf2_ros import TransformException
@@ -90,6 +91,12 @@ class TB3Adapter(Node):
             srv_type=GetState,
             srv_name=base_interface_name + self._get_state_svc_srv,
             callback=self.get_state_callback,
+        )
+
+        self.supported_actions_srv = self.create_service(
+            SupportedActions,
+            base_interface_name + self._supported_actions_svc_srv,
+            lambda _: self.get_logger().info("Supported actions request"),
         )
 
         nav_to_node_action_client_cb_group = MutuallyExclusiveCallbackGroup()
@@ -143,6 +150,9 @@ class TB3Adapter(Node):
         )
         self._nav_to_node_act_srv = read_str_parameter(
             self, "nav_to_node_act_name", "adapter/nav_to_node"
+        )
+        self._supported_actions_svc_srv = read_str_parameter(
+            self, "supported_actions_svc_name", "adapter/supported_actions"
         )
 
     def odom_callback(self, odom_msg: Odometry):
