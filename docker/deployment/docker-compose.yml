@@ -24,6 +24,7 @@ services:
     command: /bin/bash -c \
               "export TURTLEBOT3_MODEL=waffle \
               && ros2 launch nav2_bringup tb3_simulation_launch.py headless:=False"
+    network_mode: "host"
 
   development:
     build:
@@ -39,13 +40,16 @@ services:
       - /sys/fs/cgroup
       - /run
       - ../../vda5050_template_package:/home/docker/dev_ws/src/vda5050_template_package
+      - ../../vda5050_tb3_adapter:/home/docker/dev_ws/src/vda5050_tb3_adapter
     deploy:
       resources:
         reservations:
           devices:
             - capabilities: [gpu]
     command: sleep infinity
+    network_mode: "host"
 
   mosquitto:
     image: eclipse-mosquitto
     command: mosquitto -c /mosquitto-no-auth.conf
+    network_mode: "host"
