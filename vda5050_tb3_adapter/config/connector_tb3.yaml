@@ -1,6 +1,6 @@
 mqtt_bridge:
   ros__parameters:
-    mqtt_address: "localhost"
+    mqtt_address: "mosquitto"
     mqtt_port: 1883
     mqtt_username: ""
     mqtt_password: ""

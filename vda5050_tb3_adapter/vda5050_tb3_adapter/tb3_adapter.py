@@ -239,7 +239,7 @@ class TB3Adapter(Node):
             ]:
                 feedback_msg.current_action.action_status = action_status
                 goal_handle.publish_feedback(feedback_msg)
-                time.sleep(5)
+                time.sleep(3)
 
             result.result = feedback_msg.current_action
         goal_handle.succeed()
