@@ -24,6 +24,8 @@ services:
     command: /bin/bash -c \
               "export TURTLEBOT3_MODEL=waffle \
               && ros2 launch nav2_bringup tb3_simulation_launch.py headless:=False"
+    networks:
+      - vda5050-adapter-examples
 
   development:
     build:
@@ -46,9 +48,17 @@ services:
           devices:
             - capabilities: [gpu]
     command: sleep infinity
+    networks:
+      - vda5050-adapter-examples
 
   mosquitto:
     image: eclipse-mosquitto
     command: mosquitto -c /mosquitto-no-auth.conf
     ports:
       - "18883:1883"
+    networks:
+      - vda5050-adapter-examples
+
+networks:
+  vda5050-adapter-examples:
+    driver: bridge
