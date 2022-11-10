@@ -65,20 +65,16 @@ USER docker
 
 WORKDIR /home/docker/dev_ws
 
-# Clone and compile vda5050_msgs
-RUN /bin/bash -c \
-   'mkdir -p src && source /opt/ros/galactic/setup.bash \
-   && git clone --branch ros2-vda5050-v2 https://github.com/ipa320/vda5050_msgs.git \
-   && mv vda5050_msgs/vda5050_msgs ./src/vda5050_msgs \
-   && rm -rf vda5050_msgs \
-   && /bin/bash -c "source /opt/ros/galactic/setup.bash && colcon build"'
-
 # Clone and compile vda5050_connector
 RUN mkdir -p /home/docker/.ssh && ssh-keyscan -H github.com > /home/docker/.ssh/known_hosts
 RUN --mount=type=ssh,mode=0666 /bin/bash -c \
    'source /opt/ros/galactic/setup.bash \
+   && mkdir -p src \
    && git clone --branch galactic-devel https://github.com/inorbit-ai/ros_amr_interop.git \
    && mv ros_amr_interop/vda5050_connector ./src/vda5050_connector \
+   && mv ros_amr_interop/vda5050_msgs ./src/vda5050_msgs \
+   && mv ros_amr_interop/vda5050_serializer ./src/vda5050_serializer \
+   && rm -rf ros_amr_interop \
    && /bin/bash -c "source /opt/ros/galactic/setup.bash && colcon build"'
 
 # Add ROS and workspace overlays to docker user
