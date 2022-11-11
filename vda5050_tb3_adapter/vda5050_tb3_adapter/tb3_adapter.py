@@ -215,6 +215,14 @@ class TB3Adapter(Node):
 
             self._init_pose_pub.publish(pose_with_cov_stamped)
 
+            self.logger.info(f"Instant action '{action.action_id}' finished")
+
+            result.result = VDACurrentAction(
+                action_id=action.action_id,
+                action_description=action.action_description,
+                action_status=VDACurrentAction.FINISHED,
+            )
+
         else:
             self.logger.info(
                 f"Received unsupported action: '{action.action_type}'. "
