@@ -1,4 +1,4 @@
-FROM osrf/ros:galactic-desktop AS base
+FROM osrf/ros:humble-desktop AS base
 
 ENV container docker
 ENV DEBIAN_FRONTEND=noninteractive
@@ -40,14 +40,14 @@ RUN apt-get update \
    python3-rosdep2 \
    python3-vcstool \
    libyaml-cpp-dev \
-   ros-galactic-ament* \
-   ros-galactic-rqt* \
-   ros-galactic-navigation2 \
-   ros-galactic-nav2-bringup \
-   ros-galactic-tf-transformations \
-   ros-galactic-tf2-tools \
-   ros-galactic-turtle-tf2-py \
-   ros-galactic-pluginlib \
+   ros-humble-ament* \
+   ros-humble-rqt* \
+   ros-humble-navigation2 \
+   ros-humble-nav2-bringup \
+   ros-humble-tf-transformations \
+   ros-humble-tf2-tools \
+   ros-humble-turtle-tf2-py \
+   ros-humble-pluginlib \
    && apt dist-upgrade -y \
    && rm -r /var/lib/apt/lists/*
 
@@ -68,16 +68,16 @@ WORKDIR /home/docker/dev_ws
 # Clone and compile vda5050_connector
 RUN mkdir -p /home/docker/.ssh && ssh-keyscan -H github.com > /home/docker/.ssh/known_hosts
 RUN --mount=type=ssh,mode=0666 /bin/bash -c \
-   'source /opt/ros/galactic/setup.bash \
+   'source /opt/ros/humble/setup.bash \
    && mkdir -p src \
-   && git clone --branch galactic-devel https://github.com/inorbit-ai/ros_amr_interop.git \
+   && git clone --branch humble-devel https://github.com/nv-yuzho/ros_amr_interop.git \
    && mv ros_amr_interop/vda5050_connector ./src/vda5050_connector \
    && mv ros_amr_interop/vda5050_msgs ./src/vda5050_msgs \
    && mv ros_amr_interop/vda5050_serializer ./src/vda5050_serializer \
    && rm -rf ros_amr_interop \
-   && /bin/bash -c "source /opt/ros/galactic/setup.bash && colcon build"'
+   && /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"'
 
 # Add ROS and workspace overlays to docker user
-RUN echo "source /opt/ros/galactic/setup.bash" >> /home/docker/.bashrc \
+RUN echo "source /opt/ros/humble/setup.bash" >> /home/docker/.bashrc \
    && echo "source /home/docker/dev_ws/install/setup.bash" >> /home/docker/.bashrc \
    && rosdep update
