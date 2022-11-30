@@ -27,6 +27,12 @@ To work with it, there are two bash scripts that launch, attach and stop the con
   ./setup-sim.sh # Run the three containers.
   ```
 
+- Run *NVIDIA Isaac Sim simulation* environment:
+
+  ```sh
+  ./setup-isaac-sim.sh # Run the three containers.
+  ```
+
 These scripts automatically attach to the _development_ container. To attach another terminal to a given container (`development`, `simulation` or `mosquitto`) use:
 
 ```sh

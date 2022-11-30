@@ -73,7 +73,6 @@ services:
                  "--scenario-model", "${SIM_SCENE}"]
     networks:
       - vda5050-adapter-examples
-    privileged: true
     volumes:
     - type: bind
       source: ../scripts/isaac_sim_launch.py

@@ -316,3 +316,24 @@ To test the TB3 adapter sample, follow these steps:
   }'
   ```
   </details>
+
+## Running the TB3 VDA5050 connector with Nav2 and Isaac Sim
+
+To test the TB3 adapter sample with Isaac Sim, follow these steps:
+
+- Execute the *NVIDIA Isaac Sim simulation* environment (see [docker environment](../docker/README.md)).
+
+- Inside the _development_ container:
+
+    ```sh
+    # Build workspace packages
+    colcon build && source install/setup.bash
+    # Launch the TB3 VDA5050 connector
+    ros2 launch vda5050_tb3_adapter connector_tb3.launch.py
+    ```
+
+- Attach a new terminal to the _development_ container inside the `docker/deployment/` folder and Launch Nav2
+    ```sh
+    docker compose exec development bash
+    source install/setup.bash && ros2 launch vda5050_tb3_adapter nav2.launch.py
+    ```
