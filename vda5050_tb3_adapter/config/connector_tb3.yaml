@@ -5,16 +5,16 @@ mqtt_bridge:
     mqtt_username: ""
     mqtt_password: ""
     manufacturer_name: "OSRF"
-    serial_number: "TB3_1"
+    serial_number: "carter01"
 
 controller:
   ros__parameters:
-    robot_name: "TB3_1"
+    robot_name: "carter01"
     manufacturer_name: "OSRF"
-    serial_number: "TB3_1"
+    serial_number: "carter01"
 
 tb3_adapter:
   ros__parameters:
-    robot_name: "TB3_1"
+    robot_name: "carter01"
     manufacturer_name: "OSRF"
-    serial_number: "TB3_1"
+    serial_number: "carter01"

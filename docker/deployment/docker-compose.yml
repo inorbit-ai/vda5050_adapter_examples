@@ -12,7 +12,7 @@ services:
       - DISPLAY
       - QT_X11_NO_MITSHM=1
       - XAUTHORITY=/tmp/.docker.xauth
-      - ROS_DOMAIN_ID=100
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /tmp/.docker.xauth:/tmp/.docker.xauth
@@ -35,7 +35,7 @@ services:
     user: docker
     environment:
       - DISPLAY
-      - ROS_DOMAIN_ID=100
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /sys/fs/cgroup
@@ -58,6 +58,35 @@ services:
       - "18883:1883"
     networks:
       - vda5050-adapter-examples
+  
+  isaac-sim:
+    image: ${ISAAC_SIM_IMAGE}
+    environment:
+    - NO_NUCLEUS=Y
+    - ACCEPT_EULA=Y
+    - OMNI_USER=dockeruser
+    - OMNI_PASS=dockeruser
+    - OMNI_SERVER=ov-isaac-dev.nvidia.com
+    - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+    - DISPLAY
+    entrypoint: ["./python.sh", "/launch.py",
+                 "--scenario-model", "${SIM_SCENE}"]
+    networks:
+      - vda5050-adapter-examples
+    privileged: true
+    volumes:
+    - type: bind
+      source: ../scripts/isaac_sim_launch.py
+      target: /launch.py
+    - type: bind
+      source: /dev/shm
+      target: /dev/shm
+    - type: bind
+      source: /tmp/.X11-unix
+      target: /tmp/.X11-unix
+    - type: bind
+      source: $XAUTHORITY
+      target: /root/.Xauthority
 
 networks:
   vda5050-adapter-examples:
