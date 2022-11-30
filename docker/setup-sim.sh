@@ -15,7 +15,7 @@ fi
 
 pushd deployment
 docker compose build
-docker compose up -d
+docker compose up -d development mosquitto simulation
 docker compose exec development bash
 docker compose down
 popd

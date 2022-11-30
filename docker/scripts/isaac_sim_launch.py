@@ -43,7 +43,6 @@ args, _ = parser.parse_known_args()
 
 CONFIG = {"renderer": "RayTracedLighting", "headless": args.headless}
 
-# Example ROS2 bridge sample demonstrating the manual loading of Multiple Robot Navigation scenario
 simulation_app = SimulationApp(CONFIG)
 import omni
 from omni.isaac.core import SimulationContext
