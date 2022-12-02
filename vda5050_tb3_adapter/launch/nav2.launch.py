@@ -35,6 +35,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch import LaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
+from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
@@ -44,39 +45,79 @@ def generate_launch_description():
     nav2_bringup_launch_dir = os.path.join(
         get_package_share_directory('nav2_bringup'), 'launch')
 
+    launch_args = [
+        DeclareLaunchArgument(
+            'ros_namespace',
+            default_value='',
+            description='Namespace for ROS nodes in this launch script'),
+        DeclareLaunchArgument(
+            'use_namespace',
+            default_value='False',
+            description='Whether to apply a namespace to the navigation stack'),
+        DeclareLaunchArgument(
+            'use_composition',
+            default_value='False',
+            description='Whether to use composed Nav2 bringup'),
+        DeclareLaunchArgument(
+            'use_sim_time',
+            default_value='False',
+            description='Use simulation (Omniverse Isaac Sim) clock if true'),
+        DeclareLaunchArgument(
+            'init_pose_x',
+            default_value='0.0',
+            description='Initial position X coordinate'),
+        DeclareLaunchArgument(
+            'init_pose_y',
+            default_value='0.0',
+            description='Initial position Y coordinate'),
+        DeclareLaunchArgument(
+            'init_pose_yaw',
+            default_value='0.0',
+            description='Initial pos yaw'),
+        DeclareLaunchArgument(
+            'map',
+            default_value=os.path.join(package_dir, 'maps', 'carter_warehouse_navigation.yaml'),
+            description='Full path to map file to load'),
+        DeclareLaunchArgument(
+            'nav_params_file',
+            default_value=os.path.join(package_dir, "config", 'carter_navigation_params.yaml'),
+            description='Full path to navigation param file to load'),
+    ]
+
+    ros_namespace = LaunchConfiguration('ros_namespace')
+    use_namespace = LaunchConfiguration('use_namespace')
+    use_composition = LaunchConfiguration('use_composition')
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    init_pose_x = LaunchConfiguration('init_pose_x', default=0.0)
+    init_pose_y = LaunchConfiguration('init_pose_y', default=0.0)
+    init_pose_yaw = LaunchConfiguration('init_pose_yaw', default=0.0)
+    map_dir = LaunchConfiguration('map')
     nav_params_file = LaunchConfiguration('nav_params_file',)
-    map = LaunchConfiguration('map')
 
-    # Declare parameters
+    param_substitutions = {
+        'x': init_pose_x,
+        'y': init_pose_y,
+        'yaw': init_pose_yaw
+    }
 
-    declare_nav2 = DeclareLaunchArgument(
-                        'nav_params_file',
-                        default_value=os.path.join(package_dir, "config", 'carter_navigation_params.yaml'),
-                        description='Full path to navigation param file to load')
+    configured_params = RewrittenYaml(
+        source_file=nav_params_file,
+        param_rewrites=param_substitutions,
+        convert_types=True)
 
-    declare_map = DeclareLaunchArgument(
-                        'map',
-                        default_value=os.path.join(package_dir, 'maps', 'carter_warehouse_navigation.yaml'),
-                        description='Full path to map file to load')
+    nav2_bringup_launch_dir = os.path.join(
+        get_package_share_directory('nav2_bringup'), 'launch')
 
     nav2_bringup_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            [nav2_bringup_launch_dir, "/bringup_launch.py"]),
+            [nav2_bringup_launch_dir, '/bringup_launch.py']),
         launch_arguments={
-            "namespace": "",
-            "use_namespace": "False",
-            "use_composition": "False",
-            "map": map,
-            "use_sim_time": "False",
-            "params_file": nav_params_file}.items(),
+            'namespace': ros_namespace,
+            'use_namespace': use_namespace,
+            'use_composition': use_composition,
+            'map': map_dir,
+            'use_sim_time': use_sim_time,
+            'params_file': configured_params}.items(),
     )
 
-    # Create the launch description and populate
-    ld = LaunchDescription()
-
-    ld.add_action(declare_nav2)
-    ld.add_action(declare_map)
-
-    # Launch nodes
-    ld.add_action(nav2_bringup_launch)
-    return ld
+    return LaunchDescription(launch_args + [nav2_bringup_launch])
