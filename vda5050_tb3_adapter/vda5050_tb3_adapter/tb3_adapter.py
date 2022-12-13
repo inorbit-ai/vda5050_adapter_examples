@@ -54,6 +54,8 @@ from nav_msgs.msg import Odometry
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
+from tf2_msgs.msg import TFMessage
+from tf2_ros import TransformBroadcaster
 
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
@@ -82,7 +84,7 @@ class TB3Adapter(Node):
 
     def on_configure(self):
         self.read_parameters()
-
+        
         base_interface_name = (
             f"{self.get_namespace()}/{self._manufacturer_name}/{self._robot_name}/"
         )
@@ -119,21 +121,27 @@ class TB3Adapter(Node):
         self._nav_to_pose_tb3_action_client = ActionClient(
             node=self,
             action_type=NavigateToPose,
-            action_name="/navigate_to_pose",
+            action_name=self._nav2_namespace + "/navigate_to_pose",
             callback_group=nav_to_pose_tb3_action_client_cb_group,
         )
 
         self._init_pose_pub = self.create_publisher(
-            PoseWithCovarianceStamped, "/initialpose", 10
+            PoseWithCovarianceStamped, self._nav2_namespace + "/initialpose", 10
         )
 
         # TF
+        self._tf_broadcaster = TransformBroadcaster(self)
         self._tf_buffer = Buffer()
         self._tf_listener = TransformListener(self._tf_buffer, self)
 
         self._odom_sub = self.create_subscription(
-            Odometry, "/odom", self.odom_callback, 10
+            Odometry, self._nav2_namespace + "/odom", self.odom_callback, 10
         )
+
+        if self._nav2_namespace:
+            self._tf_sub = self.create_subscription(
+                TFMessage, self._nav2_namespace + "/tf", self.tf_callback, 10
+            )
 
     def read_parameters(self):
         self._robot_name = read_str_parameter(self, "robot_name", "robot_1")
@@ -141,6 +149,7 @@ class TB3Adapter(Node):
             self, "manufacturer_name", "robots"
         )
         self._serial_number = read_str_parameter(self, "serial_number", "robot_1")
+        self._nav2_namespace = read_str_parameter(self, "nav2_namespace", " ")
 
         self._get_state_svc_srv = read_str_parameter(
             self, "get_state_svc_name", "adapter/get_state"
@@ -155,10 +164,27 @@ class TB3Adapter(Node):
             self, "supported_actions_svc_name", "adapter/supported_actions"
         )
 
+    def tf_callback(self, tf_msg: TFMessage):
+        for tf in tf_msg.transforms:
+            if tf.header.frame_id not in ["odom", "map"] or tf.child_frame_id not in ["base_link", "odom"]:
+                continue
+            if tf.header.frame_id == 'odom' and tf.child_frame_id == "base_link":
+                tf.header.frame_id = self._nav2_namespace + '/odom'
+                tf.child_frame_id = self._nav2_namespace + '/base_link'
+                self._tf_broadcaster.sendTransform(tf)
+            if tf.header.frame_id == 'map' and tf.child_frame_id == "odom":
+                tf.header.frame_id = self._nav2_namespace + '/map'
+                tf.child_frame_id = self._nav2_namespace + '/odom'
+                self._tf_broadcaster.sendTransform(tf)
+
     def odom_callback(self, odom_msg: Odometry):
         # Pose (map->base_link)
         to_frame = "map"
         from_frame = "base_link"
+        if self._nav2_namespace:
+            prefix = self._nav2_namespace.split('/',1)[1] + '/'
+            to_frame = prefix + "map"
+            from_frame = prefix + "base_link"
         self._agv_position.map_id = to_frame
         try:
             now = rclpy.time.Time()

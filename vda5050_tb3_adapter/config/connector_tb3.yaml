@@ -18,3 +18,4 @@ tb3_adapter:
     robot_name: "TB3_1"
     manufacturer_name: "OSRF"
     serial_number: "TB3_1"
+    nav2_namespace: "" 
