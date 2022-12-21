@@ -70,7 +70,7 @@ RUN mkdir -p /home/docker/.ssh && ssh-keyscan -H github.com > /home/docker/.ssh/
 RUN --mount=type=ssh,mode=0666 /bin/bash -c \
    'source /opt/ros/humble/setup.bash \
    && mkdir -p src \
-   && git clone --branch humble-devel https://github.com/nv-yuzho/ros_amr_interop.git \
+   && git clone --branch humble-devel https://github.com/inorbit-ai/ros_amr_interop.git \
    && mv ros_amr_interop/vda5050_connector ./src/vda5050_connector \
    && mv ros_amr_interop/vda5050_msgs ./src/vda5050_msgs \
    && mv ros_amr_interop/vda5050_serializer ./src/vda5050_serializer \
