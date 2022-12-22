@@ -44,6 +44,7 @@ RUN apt-get update \
    ros-humble-rqt* \
    ros-humble-navigation2 \
    ros-humble-nav2-bringup \
+   ros-humble-rmw-cyclonedds-cpp \
    ros-humble-tf-transformations \
    ros-humble-tf2-tools \
    ros-humble-turtle-tf2-py \
@@ -77,7 +78,9 @@ RUN --mount=type=ssh,mode=0666 /bin/bash -c \
    && rm -rf ros_amr_interop \
    && /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"'
 
-# Add ROS and workspace overlays to docker user
-RUN echo "source /opt/ros/humble/setup.bash" >> /home/docker/.bashrc \
+# Use CycloneDDS (see https://github.com/ROBOTIS-GIT/turtlebot3/issues/884#issuecomment-1239245562)
+# and add ROS and workspace overlays to docker user
+RUN echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" >> /home/docker/.bashrc \
+   && echo "source /opt/ros/humble/setup.bash" >> /home/docker/.bashrc \
    && echo "source /home/docker/dev_ws/install/setup.bash" >> /home/docker/.bashrc \
    && rosdep update
