@@ -23,6 +23,7 @@ services:
             - capabilities: [gpu]
     command: /bin/bash -c \
               "export TURTLEBOT3_MODEL=waffle \
+              && export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp \
               && ros2 launch nav2_bringup tb3_simulation_launch.py headless:=False"
     networks:
       - vda5050-adapter-examples

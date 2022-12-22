@@ -42,7 +42,7 @@ from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 import tf_transformations
 import time
 
-from vda5050_connector.utils import read_str_parameter
+from vda5050_connector_py.utils import read_str_parameter
 
 from vda5050_connector.action import NavigateToNode
 from vda5050_connector.action import ProcessVDAAction
