@@ -8,6 +8,7 @@ services:
       context: ../build
       dockerfile: ../build/simulation.Dockerfile
     user: docker
+    ipc: host
     environment:
       - DISPLAY
       - QT_X11_NO_MITSHM=1
