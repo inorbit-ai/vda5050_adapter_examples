@@ -39,14 +39,17 @@ from rclpy.action import ActionServer
 from rclpy.action import ActionClient
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 
+import math
 import tf_transformations
 import time
 
+from vda5050_connector_py.utils import read_double_parameter
 from vda5050_connector_py.utils import read_str_parameter
 
 from vda5050_connector.action import NavigateToNode
 from vda5050_connector.action import ProcessVDAAction
 from nav2_msgs.action import NavigateToPose
+from action_msgs.msg import GoalStatus
 from vda5050_connector.srv import GetState
 from vda5050_connector.srv import SupportedActions
 from nav_msgs.msg import Odometry
@@ -62,6 +65,7 @@ from vda5050_msgs.msg import AGVPosition as VDAAGVPosition
 from vda5050_msgs.msg import Velocity as VDAVelocity
 from vda5050_msgs.msg import OrderState as VDAOrderState
 from vda5050_msgs.msg import CurrentAction as VDACurrentAction
+from vda5050_msgs.msg import BatteryState as VDABatteryState
 
 NODE_NAME = "tb3_adapter"
 
@@ -74,6 +78,7 @@ class TB3Adapter(Node):
         self._agv_position = VDAAGVPosition()
         self._velocity = VDAVelocity()
         self._driving = False
+        self._nav_status = GoalStatus.STATUS_UNKNOWN
 
         self._active_node = VDANode()
 
@@ -154,6 +159,8 @@ class TB3Adapter(Node):
         self._supported_actions_svc_srv = read_str_parameter(
             self, "supported_actions_svc_name", "adapter/supported_actions"
         )
+        # The fake TurtleBot3 has no battery, so a simulated robot reports a fixed charge.
+        self._battery_charge = read_double_parameter(self, "battery_charge", 100.0)
 
     def odom_callback(self, odom_msg: Odometry):
         # Pose (map->base_link)
@@ -170,6 +177,7 @@ class TB3Adapter(Node):
             q = trans.transform.rotation
             _, _, theta = tf_transformations.euler_from_quaternion((q.x, q.y, q.z, q.w))
             self._agv_position.theta = theta
+            self._agv_position.position_initialized = True
         except TransformException as ex:
             self.get_logger().info(
                 "Could not transform {} to {}: {}".format(to_frame, from_frame, ex)
@@ -185,6 +193,11 @@ class TB3Adapter(Node):
         order_state = VDAOrderState()
         order_state.agv_position = self._agv_position
         order_state.velocity = self._velocity
+        order_state.operating_mode = VDAOrderState.AUTOMATIC
+        order_state.driving = self._driving
+        order_state.battery_state = VDABatteryState(
+            battery_charge=self._battery_charge, charging=False
+        )
         response.state = order_state
         return response
 
@@ -270,7 +283,17 @@ class TB3Adapter(Node):
         goal_point.pose.position.x = node.node_position.x
         goal_point.pose.position.y = node.node_position.y
 
-        q = tf_transformations.quaternion_from_euler(0, 0, node.node_position.theta)
+        theta = node.node_position.theta
+        if math.isnan(theta):
+            # theta is optional in VDA 5050 2.x: face the direction of travel
+            dx = node.node_position.x - self._agv_position.x
+            dy = node.node_position.y - self._agv_position.y
+            if math.hypot(dx, dy) < 1e-3:
+                theta = self._agv_position.theta
+            else:
+                theta = math.atan2(dy, dx)
+
+        q = tf_transformations.quaternion_from_euler(0, 0, theta)
         goal_point.pose.orientation.x = q[0]
         goal_point.pose.orientation.y = q[1]
         goal_point.pose.orientation.z = q[2]
@@ -286,6 +309,7 @@ class TB3Adapter(Node):
         self._nav_to_pose_tb3_send_goal_future = (
             self._nav_to_pose_tb3_action_client.send_goal_async(goal_msg)
         )
+        self._nav_status = GoalStatus.STATUS_UNKNOWN
         self._driving = True
 
         self._nav_to_pose_tb3_send_goal_future.add_done_callback(
@@ -295,7 +319,13 @@ class TB3Adapter(Node):
         while self._driving:
             pass
 
-        goal_handle.succeed()
+        # Report Nav2's terminal status, not unconditional success
+        # Without a cancel callback this goal never reaches CANCELING, so canceled() would be
+        # an invalid transition: a Nav2 cancel is reported as aborted.
+        if self._nav_status == GoalStatus.STATUS_SUCCEEDED:
+            goal_handle.succeed()
+        else:
+            goal_handle.abort()
 
         result = NavigateToNode.Result()
         return result
@@ -306,6 +336,8 @@ class TB3Adapter(Node):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().info("Goal rejected :(")
+            self._nav_status = GoalStatus.STATUS_ABORTED
+            self._driving = False
             return
 
         self.get_logger().info("Goal accepted :)")
@@ -316,6 +348,7 @@ class TB3Adapter(Node):
     def _nav_to_pose_tb3_get_result_callback(self, future):
         result = future.result().result
         self.get_logger().info("Result: {}".format(result))
+        self._nav_status = future.result().status
         self._driving = False
         self.get_logger().info(
             "The actions to do are: {}".format(self._active_node.actions)
