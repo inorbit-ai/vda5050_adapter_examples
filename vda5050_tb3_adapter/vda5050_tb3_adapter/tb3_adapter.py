@@ -320,10 +320,10 @@ class TB3Adapter(Node):
             pass
 
         # Report Nav2's terminal status, not unconditional success
+        # Without a cancel callback this goal never reaches CANCELING, so canceled() would be
+        # an invalid transition: a Nav2 cancel is reported as aborted.
         if self._nav_status == GoalStatus.STATUS_SUCCEEDED:
             goal_handle.succeed()
-        elif self._nav_status == GoalStatus.STATUS_CANCELED:
-            goal_handle.canceled()
         else:
             goal_handle.abort()
 
